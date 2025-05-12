@@ -14,6 +14,7 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 	const [homework, setHomework] = useState("");
 	const [balance, setBalance] = useState(0);
 
+	console.log(lessons);
 	// Helper function to get the start of the week (Monday)
 	const getStartOfWeek = (date) => {
 		const day = date.getDay();
@@ -35,7 +36,7 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 	// Filter lessons for the current week
 	const getLessonsForWeek = (weekDays) => {
 		return lessons.filter((lesson) => {
-			const lessonDate = new Date(lesson.date);
+			const lessonDate = new Date(lesson.dateTime);
 			return weekDays.some(
 				(day) =>
 					lessonDate.getFullYear() === day.getFullYear() &&
@@ -66,6 +67,17 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 		setHomework(lesson.homework || "");
 		setBalance(lesson.balance || 0);
 		setOpenModal(true);
+	};
+
+	const getStudentName = (id) => {
+		const student = studentData.find((s) => s.id === id);
+		return student ? student.firstName : "Unknown";
+	};
+
+	const getCourseName = (id) => {
+		const student = studentData.find((s) => s.id === id);
+		console.log(student);
+		return student ? student.course : "No Course";
 	};
 
 	// Handle saving the lesson details
@@ -107,7 +119,7 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 			>
 				{weekDays.map((day, index) => {
 					const dayLessons = weekLessons.filter((lesson) => {
-						const lessonDate = new Date(lesson.date);
+						const lessonDate = new Date(lesson.dateTime);
 						return (
 							lessonDate.getFullYear() === day.getFullYear() &&
 							lessonDate.getMonth() === day.getMonth() &&
@@ -127,7 +139,7 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 							</Typography>
 							<Box sx={{ mt: 1 }}>
 								{dayLessons.map((lesson, lessonIndex) => {
-									const lessonEndTime = new Date(lesson.date);
+									const lessonEndTime = new Date(lesson.dateTime);
 									lessonEndTime.setMinutes(lessonEndTime.getMinutes() + 55); // Assuming each lesson is 55 minutes long
 
 									const isLessonEnded = new Date() > lessonEndTime;
@@ -154,13 +166,15 @@ const ScheduleComponent = ({ lessons, studentData }) => {
 											>
 												<CardContent>
 													<Typography variant='body2'>
-														{new Date(lesson.date).toLocaleTimeString([], {
+														{new Date(lesson.dateTime).toLocaleTimeString([], {
 															hour: "2-digit",
 															minute: "2-digit",
 														})}
 													</Typography>
 													<Typography variant='caption'>
-														{`${studentData.firstName} - ${studentData.courses[0].courseName}`}
+														{`${getStudentName(
+															lesson.studentId
+														)} - ${getCourseName(lesson.studentId)}`}
 													</Typography>
 													<br />
 													<Typography variant='caption'>

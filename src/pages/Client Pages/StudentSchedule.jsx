@@ -1,53 +1,76 @@
 import React, { useState, useEffect } from "react";
-import {
-	Typography,
-	Box,
-	Grid,
-	Card,
-	CardContent,
-	Button,
-	Modal,
-} from "@mui/material";
-import { motion } from "framer-motion";
 import Navbar from "../../components/Client Components/Navbar";
-import { getFirestore, doc, getDoc } from "firebase/firestore"; // Firestore functions
-import { getAuth } from "firebase/auth";
-import { db } from "../../firebase.config";
 import Schedule from "../../components/Client Components/Schedule";
-const DynamicCalendar = ({ studentData }) => {
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../firebase.config";
+import { useAuth } from "../../Context/AuthContext";
+
+const DynamicCalendar = () => {
 	const [lessons, setLessons] = useState([]);
-	const [classData, setClassData] = useState([]);
+	const [students, setStudents] = useState([]);
+	const { user } = useAuth();
 
+	console.log(lessons);
+	console.log(students);
+
+	const parentId = user.uid;
 	useEffect(() => {
-		const fetchUpcomingLesson = async () => {
+		const fetchAllLessons = async () => {
 			try {
-				if (!studentData?.courses || studentData.courses.length === 0) return;
+				// Step 1: Get all students for the parent
+				const studentsQuery = query(
+					collection(db, "students"),
+					where("parentId", "==", parentId)
+				);
+				const studentsSnap = await getDocs(studentsQuery);
+				const studentList = [];
+				const lessonList = [];
 
-				let upcoming = null;
+				for (const studentDoc of studentsSnap.docs) {
+					const studentData = { id: studentDoc.id, ...studentDoc.data() };
+					studentList.push(studentData);
 
-				for (const course of studentData.courses) {
-					const classRef = doc(db, "classes", course.classId);
-					const classSnap = await getDoc(classRef);
+					// Step 2: Get all lessons for this student
+					const lessonsQuery = query(
+						collection(db, "classes"),
+						where("studentId", "==", studentData.id)
+					);
+					const lessonsSnap = await getDocs(lessonsQuery);
 
-					if (classSnap.exists()) {
-						const classData = classSnap.data();
-						console.log(classData);
-						setLessons(classData.schedule);
-						setClassData(classData);
-					}
+					lessonsSnap.forEach((lessonDoc) => {
+						lessonList.push({
+							id: lessonDoc.id,
+							...lessonDoc.data(),
+							studentName: studentData.name, // optional, to show which kid
+						});
+					});
 				}
+
+				// Optional: Sort by date
+				lessonList.sort((a, b) => {
+					const dateA = a.dateTime?.toDate
+						? a.dateTime.toDate()
+						: new Date(a.dateTime);
+					const dateB = b.dateTime?.toDate
+						? b.dateTime.toDate()
+						: new Date(b.dateTime);
+					return dateA - dateB;
+				});
+
+				setLessons(lessonList);
+				setStudents(studentList);
 			} catch (error) {
-				console.error("❌ Error fetching upcoming lesson:", error);
+				console.error("❌ Error fetching parent lessons:", error);
 			}
 		};
 
-		fetchUpcomingLesson();
-	}, [studentData]);
+		fetchAllLessons();
+	}, [parentId]);
 
 	return (
 		<div>
 			<Navbar />
-			<Schedule lessons={lessons} studentData={studentData} />
+			<Schedule lessons={lessons} studentData={students} />
 		</div>
 	);
 };

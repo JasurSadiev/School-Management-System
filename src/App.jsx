@@ -18,6 +18,7 @@ import WorkingHours from "./pages/WorkingHoursPage";
 import SignUp from "./pages/SignUp";
 import MyProfile from "./pages/MyProfile";
 import StudentRegistrationForm from "./pages/StudentRegistration";
+import AddStudentForm from "./pages/AddStudent";
 import TeacherFinder from "./pages/TeacherFinder";
 import { useAuth } from "./Context/AuthContext";
 import ClientHome from "./pages/Client Pages/ClientHome";
@@ -74,6 +75,7 @@ function App() {
 			<Route path='/sign-in' element={<SignIn />} />
 			<Route path='/sign-up' element={<SignUp />} />
 			<Route path='/register-student' element={<StudentRegistrationForm />} />
+			<Route path='/add-student' element={<AddStudentForm />} />
 			<Route path='/find-teacher' element={<TeacherFinder />} />
 
 			{/* Protected Routes */}
@@ -92,7 +94,7 @@ function App() {
 				path='/my-schedule'
 				element={
 					<PrivateRoute
-						allowedRoles={["Admin", "Teacher", "Manager", "Student"]}
+						allowedRoles={["Admin", "Teacher", "Manager", "Parent"]}
 					>
 						<GeneralSchedule role={role} studentData={studentData} />
 					</PrivateRoute>
@@ -144,7 +146,7 @@ function App() {
 			<Route
 				path='/home'
 				element={
-					<PrivateRoute allowedRoles={["Student"]}>
+					<PrivateRoute allowedRoles={["Parent"]}>
 						<ClientHome user={user} studentData={studentData} />
 					</PrivateRoute>
 				}

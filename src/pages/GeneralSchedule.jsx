@@ -6,8 +6,8 @@ const GeneralSchedule = ({ role, studentData }) => {
 	return (
 		<div>
 			{role === "Teacher" && <Schedule />}
-			{role === "Student" && <StudentSchedule studentData={studentData} />}
-			{!["Teacher", "Student"].includes(role) && (
+			{role === "Parent" && <StudentSchedule />}
+			{!["Teacher", "Parent"].includes(role) && (
 				<p>No schedule available for your role.</p>
 			)}
 		</div>
